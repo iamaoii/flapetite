@@ -2,6 +2,9 @@
 import pygame
 from sys import exit
 import random
+import speech_recognition as sr
+import threading
+import queue
 
 # --- Initialize Pygame and Clock ---
 pygame.init()
@@ -30,7 +33,7 @@ bottom_normal_pipe_image = pygame.image.load("assets/pipe_normal_bottom1.png")
 top_happy_pipe_image = pygame.image.load("assets/pipe_happy_top.png")
 bottom_happy_pipe_image = pygame.image.load("assets/pipe_happy_bottom.png")
 top_sad_pipe_image = pygame.image.load("assets/pipe_sad_top.png")
-bottom_sad_pipe_image = pygame.image.load("assets/pipe_sad_bottom1.png")
+bottom_sad_pipe_image = pygame.image.load("assets/pipe_sad_bottom.png")
 top_angry_pipe_image = pygame.image.load("assets/pipe_angry_top.png")
 bottom_angry_pipe_image = pygame.image.load("assets/pipe_angry_bottom.png")
 
@@ -60,14 +63,33 @@ best_score = 0
 font = pygame.font.Font("assets/more_sugar.ttf", 50)
 big_font = pygame.font.Font("assets/more_sugar.ttf", 90)
 game_stopped = True
-pipe_gap = 300
+pipe_gap = 200
+voice_command = None
+command_queue = queue.Queue()
 
 # --- Pause Button Rect ---
 pause_btn_rect = pause_btn_image.get_rect(topleft=(20, 20))
 
+# --- Voice Recognition Thread ---
+def voice_recognition_thread():
+    global voice_command
+    recognizer = sr.Recognizer()
+    with sr.Microphone() as source:
+        recognizer.adjust_for_ambient_noise(source, duration=0.5)
+        while True:
+            try:
+                audio = recognizer.listen(source, timeout=0.5, phrase_time_limit=1.0)
+                command = recognizer.recognize_google(audio).lower()
+                command_queue.put(command)
+            except (sr.WaitTimeoutError, sr.UnknownValueError, sr.RequestError):
+                continue
+
+# Start voice recognition in a separate thread
+threading.Thread(target=voice_recognition_thread, daemon=True).start()
+
 # --- Pause Game Menu ---
 def pause_game():
-    global score
+    global score, voice_command
     paused = True
     while paused:
         for event in pygame.event.get():
@@ -91,6 +113,21 @@ def pause_game():
                         game_stopped = True
                         menu()
 
+        # Process voice commands
+        try:
+            command = command_queue.get_nowait()
+            if command == "continue":
+                pygame.time.delay(150)
+                paused = False
+            elif command == "exit":
+                pygame.time.delay(150)
+                score = 0
+                paused = False
+                game_stopped = True
+                menu()
+        except queue.Empty:
+            pass
+
         # Draw pause panel and buttons
         window.blit(pause_image, (win_width // 2 - pause_image.get_width() // 2, win_height // 2 - pause_image.get_height() // 2))
         continue_rect = continue_btn_image.get_rect(center=(win_width // 2 + 100, 510))
@@ -113,9 +150,11 @@ class Bird(pygame.sprite.Sprite):
         self.vel = 0
         self.clicked = False
         self.space_pressed = False
+        self.voice_jump = False
         self.alive = True
 
     def update(self, user_input):
+        global voice_command
         if self.alive:
             # Handle animation
             flap_cooldown = 5
@@ -132,16 +171,26 @@ class Bird(pygame.sprite.Sprite):
             if self.rect.bottom < win_height:
                 self.rect.y += int(self.vel)
 
-            # Flap on SPACE key or mouse click (single tap)
-            if (user_input[pygame.K_SPACE] and not self.space_pressed or 
-                pygame.mouse.get_pressed()[0] == 1 and not self.clicked) and self.rect.y > 0:
-                self.clicked = pygame.mouse.get_pressed()[0] == 1
+            # Flap on SPACE key, mouse click, or voice "jump" (single tap)
+            try:
+                command = command_queue.get_nowait()
+                if command == "jump":
+                    self.voice_jump = True
+            except queue.Empty:
+                pass
+
+            if ((user_input[pygame.K_SPACE] and not self.space_pressed) or 
+                (pygame.mouse.get_pressed()[0] == 1 and not self.clicked) or 
+                (self.voice_jump and not self.clicked)) and self.rect.y > 0:
+                self.clicked = pygame.mouse.get_pressed()[0] == 1 or self.voice_jump
                 self.space_pressed = user_input[pygame.K_SPACE]
                 self.vel = -10
             if not user_input[pygame.K_SPACE]:
                 self.space_pressed = False
             if pygame.mouse.get_pressed()[0] == 0:
                 self.clicked = False
+            if self.voice_jump:
+                self.voice_jump = False
 
             # Rotate bird based on velocity
             self.image = pygame.transform.rotate(self.images[self.index], self.vel * -2)
@@ -228,9 +277,23 @@ def how_to_play_screen():
                         pygame.quit()
                         exit()
 
+        # Process voice commands
+        try:
+            command = command_queue.get_nowait()
+            if command == "play":
+                pygame.time.delay(150)
+                main()
+                return
+            elif command == "exit":
+                pygame.time.delay(150)
+                pygame.quit()
+                exit()
+        except queue.Empty:
+            pass
+
         window.blit(normal_background, (0, 0))
         play_rect = play_btn_image.get_rect(center=(win_width // 2 + 100, 610))
-        exit_rect = exit_btn_image.get_rect(center=(win_width // 2 - 100, 610))
+        exit_rect = exit_btn_image.get_rect(center=(win_width // 2 - 110, 610))
         howto_rect = how_to_play_btn_image2.get_rect(center=(win_width // 2, 100))
 
         window.blit(how_to_play_image, (win_width // 2 - how_to_play_image.get_width() // 2, win_height // 2 - 250))
@@ -266,6 +329,14 @@ def main():
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1 and pause_btn_rect.collidepoint(event.pos):
                     pause_game()
+
+        # Process voice commands
+        try:
+            command = command_queue.get_nowait()
+            if command == "pause":
+                pause_game()
+        except queue.Empty:
+            pass
 
         # Draw elements
         window.blit(current_background, (0, 0))
@@ -317,6 +388,23 @@ def main():
                                 game_stopped = True
                                 menu()
                                 return
+
+                # Process voice commands
+                try:
+                    command = command_queue.get_nowait()
+                    if command == "play":
+                        pygame.time.delay(150)
+                        score = 0
+                        main()
+                        return
+                    elif command == "exit":
+                        pygame.time.delay(150)
+                        score = 0
+                        game_stopped = True
+                        menu()
+                        return
+                except queue.Empty:
+                    pass
 
                 window.blit(current_background, (0, 0))
                 pipes.draw(window)
@@ -412,6 +500,23 @@ def menu():
                         pygame.time.delay(150)
                         pygame.quit()
                         exit()
+
+        # Process voice commands
+        try:
+            command = command_queue.get_nowait()
+            if command == "start":
+                pygame.time.delay(150)
+                game_stopped = False
+                main()
+            elif command == "how to play":
+                pygame.time.delay(150)
+                how_to_play_screen()
+            elif command == "exit":
+                pygame.time.delay(150)
+                pygame.quit()
+                exit()
+        except queue.Empty:
+            pass
 
         window.blit(normal_background, (0, 0))
         window.blit(title_image, title_rect.topleft)
