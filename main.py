@@ -17,11 +17,13 @@ bird_images = [pygame.image.load("assets/bird_down.png"),
                pygame.image.load("assets/bird_mid.png"),
                pygame.image.load("assets/bird_up.png")]
 
-home_background = pygame.image.load("assets/background_normal.png")
+normal_background = pygame.image.load("assets/background_normal.png")
 happy_background = pygame.image.load("assets/background_happy.png")
 sad_background = pygame.image.load("assets/background_sad.png")
 angy_background = pygame.image.load("assets/background_angry.png")
 
+top_normal_pipe_image = pygame.image.load("assets/pipe_normal_top.png")
+bottom_normal_pipe_image = pygame.image.load("assets/pipe_normal_bottom.png")
 top_happy_pipe_image = pygame.image.load("assets/pipe_happy_top.png")
 bottom_happy_pipe_image = pygame.image.load("assets/pipe_happy_bottom.png")
 top_sad_pipe_image = pygame.image.load("assets/pipe_sad_top.png")
@@ -29,25 +31,67 @@ bottom_sad_pipe_image = pygame.image.load("assets/pipe_sad_bottom.png")
 top_angry_pipe_image = pygame.image.load("assets/pipe_angry_top.png")
 bottom_angry_pipe_image = pygame.image.load("assets/pipe_angry_bottom.png")
 
-portal_image = pygame.image.load("assets/portal.png")
-game_over_image = pygame.image.load("assets/game_over.png")
-
 start_btn_image = pygame.image.load("assets/start.png")
 play_btn_image = pygame.image.load("assets/play.png")
 how_to_play_btn_image = pygame.image.load("assets/how_to_play.png")
 exit_btn_image = pygame.image.load("assets/exit.png")
+continue_btn_image = pygame.image.load("assets/continue.png")
 title_image = pygame.image.load("assets/flapetite.png")
+quickie_image = pygame.image.load("assets/quickie.png")
+pause_btn_image = pygame.image.load("assets/pause.png")
+pause_image = pygame.image.load("assets/pause_panel.png")
+game_over_image = pygame.image.load("assets/game_over_panel.png")
 
+portal_image = pygame.image.load("assets/portal.png")
 food_images = [pygame.image.load(f"assets/food{i}.png") for i in range(1, 11)]
 
 scroll_speed = 2
 bird_start_position = (100, 250)
 score = 0
 best_score = 0
-font = pygame.font.SysFont('Segoe', 26)
+font = pygame.font.Font("assets/more_sugar.ttf", 50)
 game_stopped = True
 
-pipe_gap = 200  # GAP between top and bottom
+pipe_gap = 300
+
+pause_btn_rect = pause_btn_image.get_rect(topleft=(20, 20))
+
+def pause_game():
+    paused = True
+
+    while paused:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                paused = False
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1 and pause_btn_rect.collidepoint(pygame.mouse.get_pos()):
+                    paused = False
+
+        window.blit(pause_image, (win_width // 2 - pause_image.get_width() // 2, win_height // 2 - pause_image.get_height() // 2))
+
+        # Buttons
+        continue_rect = continue_btn_image.get_rect(center=(win_width // 2 + 100, 510))  # Resume on left
+        exit_rect = exit_btn_image.get_rect(center=(win_width // 2 - 100, 510))     # Exit on right
+
+        window.blit(continue_btn_image, continue_rect.topleft)
+        window.blit(exit_btn_image, exit_rect.topleft)
+
+        # Get mouse input here
+        mouse = pygame.mouse.get_pos()
+        click = pygame.mouse.get_pressed()
+
+        if continue_rect.collidepoint(mouse) and click[0]:
+            pygame.time.delay(150)
+            return  # Resume game
+        elif exit_rect.collidepoint(mouse) and click[0]:
+            pygame.quit()
+            exit()
+
+        pygame.display.update()
+        clock.tick(60)
 
 class Bird(pygame.sprite.Sprite):
     def __init__(self):
@@ -137,7 +181,7 @@ def how_to_play_screen():
     viewing = True
     while viewing:
         quit_game()
-        window.blit(home_background, (0, 0))
+        window.blit(normal_background, (0, 0))
 
         lines = [
             "HOW TO PLAY:",
@@ -169,22 +213,40 @@ def main():
 
     pipe_timer = 0
     mood_state = 0
-    current_background = happy_background
+    current_background = normal_background
     portal_active = False
     portal_spawn_score = None
 
     while True:
-        quit_game()
         user_input = pygame.key.get_pressed()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                pause_game()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1 and pause_btn_rect.collidepoint(pygame.mouse.get_pos()):
+                    pause_game()
+
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                pause_game()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1 and pause_btn_rect.collidepoint(pygame.mouse.get_pos()):
+                    pause_game()
+
         window.blit(current_background, (0, 0))
+        window.blit(pause_btn_image, pause_btn_rect.topleft)
 
         pipes.draw(window)
         foods.draw(window)
         portal.draw(window)
         bird.draw(window)
 
-        score_text = font.render(f'Score: {score}', True, pygame.Color(255, 255, 255))
-        window.blit(score_text, (20, 20))
+        score_text = font.render(f'Score: {score}', True, pygame.Color(23, 35, 58))
+        window.blit(score_text, (190, 50))
 
         if bird.sprite.alive:
             pipes.update()
@@ -209,27 +271,50 @@ def main():
                 foods.draw(window)
                 portal.draw(window)
                 bird.draw(window)
-                window.blit(game_over_image, (win_width // 2 - game_over_image.get_width() // 2, win_height // 2 - 100))
 
-                curr_text = font.render(f"Your Score: {score}", True, (255, 255, 255))
-                best_text = font.render(f"Best Score: {best_score}", True, (255, 215, 0))
-                info_text = font.render("Press R to Restart", True, (200, 200, 200))
+                # Game over image
+                window.blit(game_over_image, (win_width // 2 - game_over_image.get_width() // 2, win_height // 2 - 250))
 
-                window.blit(curr_text, (win_width // 2 - curr_text.get_width() // 2, win_height // 2 + 10))
-                window.blit(best_text, (win_width // 2 - best_text.get_width() // 2, win_height // 2 + 50))
-                window.blit(info_text, (win_width // 2 - info_text.get_width() // 2, win_height // 2 + 90))
+                # Buttons
+                play_rect = play_btn_image.get_rect(center=(win_width // 2 + 100, 510))  # Shifted left
+                exit_rect = exit_btn_image.get_rect(center=(win_width // 2 - 100, 510))  # Shifted right
+
+                window.blit(play_btn_image, play_rect.topleft)
+                window.blit(exit_btn_image, exit_rect.topleft)
+
+                # Score text
+                curr_text = font.render(f"{score}", True, (23, 35, 58))
+                best_text = font.render(f"{best_score}", True, (23, 35, 58))
+
+                spacing = 140  # Space between texts
+                total_width = curr_text.get_width() + spacing + best_text.get_width()
+                start_x = (win_width - total_width) // 2
+                y_position = win_height // 2 + 5
+
+                window.blit(curr_text, (start_x, y_position))
+                window.blit(best_text, (start_x + curr_text.get_width() + spacing, y_position))
 
                 pygame.display.update()
-                if pygame.key.get_pressed()[pygame.K_r]:
+
+                # Get mouse status
+                mouse = pygame.mouse.get_pos()
+                click = pygame.mouse.get_pressed()
+
+                # Button click handling
+                if play_rect.collidepoint(mouse) and click[0]:
+                    pygame.time.delay(150)
                     score = 0
                     return
+                elif exit_rect.collidepoint(mouse) and click[0]:
+                    pygame.quit()
+                    exit()
 
         if pygame.sprite.spritecollide(bird.sprite, foods, True):
-            score += 2
+            score += 1
 
         if pygame.sprite.spritecollide(bird.sprite, portal, True):
-            mood_state = (mood_state + 1) % 3
-            current_background = [happy_background, sad_background, angy_background][mood_state]
+            mood_state = (mood_state + 1) % 4
+            current_background = [normal_background, happy_background, sad_background, angy_background][mood_state]
             portal_active = False
             portal_spawn_score = None
 
@@ -238,28 +323,19 @@ def main():
             top_pipe_height = random.randint(50, win_height - pipe_gap - 150)
             bottom_pipe_y = top_pipe_height + pipe_gap
 
-            if mood_state == 0:
-                top_img = top_happy_pipe_image
-                bot_img = bottom_happy_pipe_image
-            elif mood_state == 1:
-                top_img = top_sad_pipe_image
-                bot_img = bottom_sad_pipe_image
-            else:
-                top_img = top_angry_pipe_image
-                bot_img = bottom_angry_pipe_image
+            top_img, bot_img = (top_normal_pipe_image, bottom_normal_pipe_image) if mood_state == 0 else \
+                (top_happy_pipe_image, bottom_happy_pipe_image) if mood_state == 1 else \
+                    (top_sad_pipe_image, bottom_sad_pipe_image) if mood_state == 2 else \
+                        (top_angry_pipe_image, bottom_angry_pipe_image)
 
             pipes.add(Pipe(x_pipe, top_pipe_height, top_img, 'top'))
             pipes.add(Pipe(x_pipe, bottom_pipe_y, bot_img, 'bottom'))
 
             if random.random() < 0.5:
-                food_x = x_pipe + 60
-                food_y = top_pipe_height + pipe_gap // 2
-                foods.add(Food(food_x, food_y))
+                foods.add(Food(x_pipe + 60, top_pipe_height + pipe_gap // 2))
 
             if score != 0 and score % 2 == 0 and not portal_active and portal_spawn_score != score:
-                portal_x = x_pipe + 80
-                portal_y = top_pipe_height + pipe_gap // 2
-                portal.add(Portal(portal_x, portal_y))
+                portal.add(Portal(x_pipe + 80, top_pipe_height + pipe_gap // 2))
                 portal_active = True
                 portal_spawn_score = score
 
@@ -272,17 +348,17 @@ def main():
 def menu():
     global game_stopped
 
-    start_rect = start_btn_image.get_rect(center=(win_width // 2, 250))
-    howto_rect = how_to_play_btn_image.get_rect(center=(win_width // 2, 320))
-    exit_rect = exit_btn_image.get_rect(center=(win_width // 2, 390))
-    title_rect = title_image.get_rect(center=(win_width // 2, 60))
+    start_rect = start_btn_image.get_rect(center=(win_width // 2, 420))
+    howto_rect = how_to_play_btn_image.get_rect(center=(win_width // 2, 500))
+    exit_rect = exit_btn_image.get_rect(center=(win_width // 2,580))
+    title_rect = title_image.get_rect(center=(win_width // 2, 110))
 
     while game_stopped:
         quit_game()
-        window.blit(home_background, (0, 0))
+        window.blit(normal_background, (0, 0))
 
         window.blit(title_image, title_rect.topleft)
-        window.blit(bird_images[1], (win_width // 2 - 24, 130))
+        window.blit(quickie_image, (win_width // 2 - 115, 130))
         window.blit(start_btn_image, start_rect.topleft)
         window.blit(how_to_play_btn_image, howto_rect.topleft)
         window.blit(exit_btn_image, exit_rect.topleft)
