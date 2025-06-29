@@ -25,8 +25,8 @@ sad_background = pygame.image.load("assets/background_sad.png")
 angy_background = pygame.image.load("assets/background_angry.png")
 
 # --- Load Pipe Images for Each Mood ---
-top_normal_pipe_image = pygame.image.load("assets/pipe_normal_top.png")
-bottom_normal_pipe_image = pygame.image.load("assets/pipe_normal_bottom.png")
+top_normal_pipe_image = pygame.image.load("assets/pipe_normal_top1.png")
+bottom_normal_pipe_image = pygame.image.load("assets/pipe_normal_bottom1.png")
 top_happy_pipe_image = pygame.image.load("assets/pipe_happy_top.png")
 bottom_happy_pipe_image = pygame.image.load("assets/pipe_happy_bottom.png")
 top_sad_pipe_image = pygame.image.load("assets/pipe_sad_top.png")
@@ -60,7 +60,7 @@ best_score = 0
 font = pygame.font.Font("assets/more_sugar.ttf", 50)
 big_font = pygame.font.Font("assets/more_sugar.ttf", 90)
 game_stopped = True
-pipe_gap = 300
+pipe_gap = 200
 
 # --- Pause Button Rect (for click detection) ---
 pause_btn_rect = pause_btn_image.get_rect(topleft=(20, 20))
