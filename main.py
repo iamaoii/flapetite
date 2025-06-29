@@ -374,9 +374,9 @@ def main():
         window.blit(current_background, (0, 0))
         if game_started:
             window.blit(pause_btn_image, pause_btn_rect.topleft)
-            pipes.draw(window)
-            foods.draw(window)
-            portal.draw(window)
+        pipes.draw(window)
+        foods.draw(window)
+        portal.draw(window)
         bird.draw(window)
 
         # Display score
@@ -486,7 +486,7 @@ def main():
                 foods.add(Food(x_pipe + 60, top_pipe_height + pipe_gap // 2))
 
             if score > 0 and score % 10 == 0 and not portal_active and portal_spawn_score != score:
-                portal.add门户(x_pipe + 80, top_pipe_height + pipe_gap // 2)
+                portal.add(Portal(x_pipe + 80, top_pipe_height + pipe_gap // 2))
                 portal_active = True
                 portal_spawn_score = score
 
