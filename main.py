@@ -44,6 +44,7 @@ continue_btn_image = pygame.image.load("assets/continue.png")
 title_image = pygame.image.load("assets/flapetite.png")
 quickie_image = pygame.image.load("assets/quickie.png")
 pause_btn_image = pygame.image.load("assets/pause.png")
+how_to_play_image = pygame.image.load("assets/how_to_play_panel.png")
 pause_image = pygame.image.load("assets/pause_panel.png")
 game_over_image = pygame.image.load("assets/game_over_panel.png")
 
@@ -211,7 +212,7 @@ def how_to_play_screen():
         exit_rect = exit_btn_image.get_rect(center=(win_width // 2 - 100, 610))
         howto_rect = how_to_play_btn_image2.get_rect(center=(win_width // 2, 100))
 
-        window.blit(game_over_image, (win_width // 2 - game_over_image.get_width() // 2, win_height // 2 - 250))
+        window.blit(how_to_play_image, (win_width // 2 - how_to_play_image.get_width() // 2, win_height // 2 - 250))
         window.blit(play_btn_image, play_rect.topleft)
         window.blit(exit_btn_image, exit_rect.topleft)
         window.blit(how_to_play_btn_image2, howto_rect.topleft)
