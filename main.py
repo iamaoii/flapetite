@@ -676,8 +676,9 @@ def menu():
     # Animation variables for quickie
     quickie_index = 0
     quickie_counter = 0
-    flap_cooldown = 5  # Match Bird class animation speed
-    quickie_hover_played = False  # Flag for hover sound (optional)
+    flap_cooldown = 10  # Slower animation (~6 FPS at 60 FPS)
+    quickie_hover_played = False  # Flag for hover sound
+    button_scale = 1.1  # 10% larger when hovered
 
     # Hover sound flags for buttons
     start_hover_played = False
@@ -754,27 +755,34 @@ def menu():
         # Check for mouse hover on quickie
         mouse_pos = pygame.mouse.get_pos()
         quickie_rect = quickie_image[quickie_index].get_rect(topleft=(win_width // 2 - 85, 190))
+        quickie_btn = quickie_image[quickie_index]
         if quickie_rect.collidepoint(mouse_pos):
-            # Uncomment the following block to add hover sound
-            # if not quickie_hover_played:
-            #     button_hover.play()  # Play hover sound
-            #     quickie_hover_played = True
+            if not quickie_hover_played:
+                random.choice(flap_sounds).play()  # Play random flap sound once on hover
+                quickie_hover_played = True
             # Animate quickie
             quickie_counter += 1
             if quickie_counter > flap_cooldown:
                 quickie_counter = 0
                 quickie_index = (quickie_index + 1) % len(quickie_image)
+            # Scale quickie when hovered
+            quickie_btn = pygame.transform.scale(quickie_image[quickie_index],
+                                                (int(quickie_image[quickie_index].get_width() * button_scale),
+                                                 int(quickie_image[quickie_index].get_height() * button_scale)))
+            quickie_rect = quickie_btn.get_rect(center=(win_width // 2 - 85 + quickie_image[quickie_index].get_width() // 2,
+                                                       190 + quickie_image[quickie_index].get_height() // 2))
         else:
-            # Reset to static image
+            # Reset to static image and hover sound flag
             quickie_index = 0
             quickie_counter = 0
-            quickie_hover_played = False  # Reset hover sound flag
+            quickie_hover_played = False
+            quickie_btn = quickie_image[quickie_index]
+            quickie_rect = quickie_btn.get_rect(topleft=(win_width // 2 - 85, 190))
 
         # Check for mouse hover on buttons
         start_btn = start_btn_image
         howto_btn = how_to_play_btn_image1
         exit_btn = exit_btn_image
-        button_scale = 1.1  # 10% larger when hovered
 
         if start_rect.collidepoint(mouse_pos):
             if not start_hover_played:
@@ -812,7 +820,7 @@ def menu():
         # Draw elements
         window.blit(normal_background, (0, 0))
         window.blit(scaled_title, scaled_title_rect.topleft)
-        window.blit(quickie_image[quickie_index], quickie_rect.topleft)
+        window.blit(quickie_btn, quickie_rect.topleft)
         window.blit(start_btn, start_rect.topleft)
         window.blit(howto_btn, howto_rect.topleft)
         window.blit(exit_btn, exit_rect.topleft)
