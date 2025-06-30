@@ -753,7 +753,7 @@ def menu():
 
         # Check for mouse hover on quickie
         mouse_pos = pygame.mouse.get_pos()
-        quickie_rect = quickie_image[quickie_index].get_rect(topleft=(win_width // 2 - 90, 190))
+        quickie_rect = quickie_image[quickie_index].get_rect(topleft=(win_width // 2 - 85, 190))
         if quickie_rect.collidepoint(mouse_pos):
             # Uncomment the following block to add hover sound
             # if not quickie_hover_played:
