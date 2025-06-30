@@ -326,6 +326,10 @@ def how_to_play_screen():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 exit()
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                button_click.play()  # Play button click sound on ESC
+                menu()
+                return
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     mouse = event.pos
@@ -433,6 +437,7 @@ def main():
                 pygame.quit()
                 exit()
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE and game_started:
+                button_click.play()  # Play button click sound on ESC
                 pause_game()
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1 and pause_btn_rect.collidepoint(event.pos) and game_started:
