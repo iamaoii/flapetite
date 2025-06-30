@@ -48,7 +48,9 @@ how_to_play_btn_image2 = pygame.image.load("assets/how_to_play2.png")
 exit_btn_image = pygame.image.load("assets/exit.png")
 continue_btn_image = pygame.image.load("assets/continue.png")
 title_image = pygame.image.load("assets/flapetite.png")
-quickie_image = pygame.image.load("assets/quickie.png")
+quickie_image = [pygame.image.load("assets/quickie.png"),
+                 pygame.image.load("assets/quickie1.png"),
+                 pygame.image.load("assets/quickie2.png")]
 pause_btn_image = pygame.image.load("assets/pause.png")
 how_to_play_image = pygame.image.load("assets/how_to_play_panel.png")
 pause_image = pygame.image.load("assets/pause_panel.png")
@@ -665,13 +667,19 @@ def menu():
     exit_rect = exit_btn_image.get_rect(center=(win_width // 2, 580))
     title_rect = title_image.get_rect(center=(win_width // 2, 110))
 
-    # Animation variables
+    # Animation variables for title
     animation_time = 0
     base_title_scale = 1.0
     title_scale_amplitude = 0.05  # 5% scale variation
     title_animation_speed = 0.05   # Speed of pulsing animation
 
-    # Hover sound flags
+    # Animation variables for quickie
+    quickie_index = 0
+    quickie_counter = 0
+    flap_cooldown = 5  # Match Bird class animation speed
+    quickie_hover_played = False  # Flag for hover sound (optional)
+
+    # Hover sound flags for buttons
     start_hover_played = False
     howto_hover_played = False
     exit_hover_played = False
@@ -733,7 +741,7 @@ def menu():
         except queue.Empty:
             pass
 
-        # Update animation time
+        # Update animation time for title
         animation_time += title_animation_speed
 
         # Calculate title scale for pulsing effect
@@ -743,8 +751,26 @@ def menu():
                                               int(title_image.get_height() * title_scale)))
         scaled_title_rect = scaled_title.get_rect(center=(win_width // 2, 110))
 
-        # Check for mouse hover on buttons
+        # Check for mouse hover on quickie
         mouse_pos = pygame.mouse.get_pos()
+        quickie_rect = quickie_image[quickie_index].get_rect(topleft=(win_width // 2 - 90, 190))
+        if quickie_rect.collidepoint(mouse_pos):
+            # Uncomment the following block to add hover sound
+            # if not quickie_hover_played:
+            #     button_hover.play()  # Play hover sound
+            #     quickie_hover_played = True
+            # Animate quickie
+            quickie_counter += 1
+            if quickie_counter > flap_cooldown:
+                quickie_counter = 0
+                quickie_index = (quickie_index + 1) % len(quickie_image)
+        else:
+            # Reset to static image
+            quickie_index = 0
+            quickie_counter = 0
+            quickie_hover_played = False  # Reset hover sound flag
+
+        # Check for mouse hover on buttons
         start_btn = start_btn_image
         howto_btn = how_to_play_btn_image1
         exit_btn = exit_btn_image
@@ -786,7 +812,7 @@ def menu():
         # Draw elements
         window.blit(normal_background, (0, 0))
         window.blit(scaled_title, scaled_title_rect.topleft)
-        window.blit(quickie_image, (win_width // 2 - 115, 130))
+        window.blit(quickie_image[quickie_index], quickie_rect.topleft)
         window.blit(start_btn, start_rect.topleft)
         window.blit(howto_btn, howto_rect.topleft)
         window.blit(exit_btn, exit_rect.topleft)
