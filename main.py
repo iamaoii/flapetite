@@ -51,17 +51,19 @@ how_to_play_image = pygame.image.load("assets/how_to_play_panel.png")
 pause_image = pygame.image.load("assets/pause_panel.png")
 game_over_image = pygame.image.load("assets/game_over_panel.png")
 
+
 # --- Load Gameplay Sprites ---
 portal_image = pygame.image.load("assets/portal.png")
 food_images = [pygame.image.load(f"assets/food{i}.png") for i in range(1, 11)]
 
 # --- Game Constants and Initial Values ---
 scroll_speed = 3
-bird_start_position = (100, 250)
+bird_start_position = (100, 350)
 score = 0
 best_score = 0
 font = pygame.font.Font("assets/more_sugar.ttf", 50)
 big_font = pygame.font.Font("assets/more_sugar.ttf", 90)
+small_font = pygame.font.Font("assets/more_sugar.ttf", 30)
 game_stopped = True
 pipe_gap = 200
 command_queue = queue.Queue()
@@ -385,8 +387,22 @@ def main():
 
         # Display start prompt if game hasn't started
         if not game_started:
-            start_text = font.render("Press SPACE, Click, or Say 'Jump' to Start", True, pygame.Color(23, 35, 58))
-            window.blit(start_text, (win_width // 2 - start_text.get_width() // 2, win_height // 2))
+            # Split text into two lines
+            line1 = small_font.render("Press SPACE, Click,", True, pygame.Color(23, 35, 58))
+            line2 = small_font.render("or Say 'Jump' to Start", True, pygame.Color(23, 35, 58))
+            line3 = font.render("GET READY...", True, pygame.Color(23, 35, 58))
+
+            # Centered x positions
+            x = (win_width - line1.get_width()) // 2
+            x3 = (win_width - line3.get_width()) // 2
+
+            # Y position
+            y = 500
+
+            # Draw each line
+            window.blit(line1, (x, y))
+            window.blit(line2, (x, y + line1.get_height() + 5))
+            window.blit(line3, (x3, 150))
 
         # Update sprites
         if game_started and bird.sprite.alive:
