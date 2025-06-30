@@ -28,8 +28,8 @@ sad_background = pygame.image.load("assets/background_sad.png")
 angry_background = pygame.image.load("assets/background_angry.png")
 
 # --- Load Pipe Images for Each Mood ---
-top_normal_pipe_image = pygame.image.load("assets/pipe_normal_top1.png")
-bottom_normal_pipe_image = pygame.image.load("assets/pipe_normal_bottom1.png")
+top_normal_pipe_image = pygame.image.load("assets/pipe_normal_top.png")
+bottom_normal_pipe_image = pygame.image.load("assets/pipe_normal_bottom.png")
 top_happy_pipe_image = pygame.image.load("assets/pipe_happy_top.png")
 bottom_happy_pipe_image = pygame.image.load("assets/pipe_happy_bottom.png")
 top_sad_pipe_image = pygame.image.load("assets/pipe_sad_top.png")
