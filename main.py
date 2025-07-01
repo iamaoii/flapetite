@@ -9,83 +9,115 @@ import queue
 import math
 
 # Initialize Pygame and Mixer
-pygame.init()
-pygame.mixer.init()  # Initialize the mixer for audio
+try:
+    pygame.init()
+    pygame.mixer.init()  # Initialize the mixer for audio
+except pygame.error as e:
+    print(f"Pygame initialization error: {e}")
+    exit()
+
 clock = pygame.time.Clock()
 
 # Set Window Properties
 win_width = 551
 win_height = 720
-window = pygame.display.set_mode((win_width, win_height))
-pygame.display.set_caption("Flapetite")
+try:
+    window = pygame.display.set_mode((win_width, win_height))
+    pygame.display.set_caption("Flapetite")
+except pygame.error as e:
+    print(f"Display setup error: {e}")
+    exit()
+
+# Load Assets with Error Handling
+def load_image(path):
+    try:
+        return pygame.image.load(path)
+    except pygame.error as e:
+        print(f"Error loading image {path}: {e}")
+        exit()
+
+def load_sound(path):
+    try:
+        return pygame.mixer.Sound(path)
+    except pygame.error as e:
+        print(f"Error loading sound {path}: {e}")
+        exit()
 
 # Load Bird Animation Frames
-bird_images = [pygame.image.load("assets/bird_down.png"),
-               pygame.image.load("assets/bird_mid.png"),
-               pygame.image.load("assets/bird_up.png")]
+bird_images = [load_image("assets/bird_down.png"),
+               load_image("assets/bird_mid.png"),
+               load_image("assets/bird_up.png")]
 
 # Load Backgrounds for Mood States
-normal_background = pygame.image.load("assets/background_normal.png")
-happy_background = pygame.image.load("assets/background_happy.png")
-sad_background = pygame.image.load("assets/background_sad.png")
-angry_background = pygame.image.load("assets/background_angry.png")
+normal_background = load_image("assets/background_normal.png")
+happy_background = load_image("assets/background_happy.png")
+sad_background = load_image("assets/background_sad.png")
+angry_background = load_image("assets/background_angry.png")
 
 # Load Pipe Images for Each Mood
-top_normal_pipe_image = pygame.image.load("assets/pipe_normal_top.png")
-bottom_normal_pipe_image = pygame.image.load("assets/pipe_normal_bottom.png")
-top_happy_pipe_image = pygame.image.load("assets/pipe_happy_top.png")
-bottom_happy_pipe_image = pygame.image.load("assets/pipe_happy_bottom.png")
-top_sad_pipe_image = pygame.image.load("assets/pipe_sad_top.png")
-bottom_sad_pipe_image = pygame.image.load("assets/pipe_sad_bottom.png")
-top_angry_pipe_image = pygame.image.load("assets/pipe_angry_top.png")
-bottom_angry_pipe_image = pygame.image.load("assets/pipe_angry_bottom.png")
+top_normal_pipe_image = load_image("assets/pipe_normal_top.png")
+bottom_normal_pipe_image = load_image("assets/pipe_normal_bottom.png")
+top_happy_pipe_image = load_image("assets/pipe_happy_top.png")
+bottom_happy_pipe_image = load_image("assets/pipe_happy_bottom.png")
+top_sad_pipe_image = load_image("assets/pipe_sad_top.png")
+bottom_sad_pipe_image = load_image("assets/pipe_sad_bottom.png")
+top_angry_pipe_image = load_image("assets/pipe_angry_top.png")
+bottom_angry_pipe_image = load_image("assets/pipe_angry_bottom.png")
 
 # Load UI Button and Panel Assets
-start_btn_image = pygame.image.load("assets/start.png")
-play_btn_image = pygame.image.load("assets/play.png")
-how_to_play_btn_image1 = pygame.image.load("assets/how_to_play1.png")
-how_to_play_btn_image2 = pygame.image.load("assets/how_to_play2.png")
-exit_btn_image = pygame.image.load("assets/exit.png")
-continue_btn_image = pygame.image.load("assets/continue.png")
-title_image = pygame.image.load("assets/flapetite.png")
-quickie_image = [pygame.image.load("assets/quickie.png"),
-                 pygame.image.load("assets/quickie1.png"),
-                 pygame.image.load("assets/quickie2.png")]
-pause_btn_image = pygame.image.load("assets/pause.png")
-how_to_play_image = pygame.image.load("assets/how_to_play_panel.png")
-pause_image = pygame.image.load("assets/pause_panel.png")
-game_over_image = pygame.image.load("assets/game_over_panel.png")
+start_btn_image = load_image("assets/start.png")
+play_btn_image = load_image("assets/play.png")
+how_to_play_btn_image1 = load_image("assets/how_to_play1.png")
+how_to_play_btn_image2 = load_image("assets/how_to_play2.png")
+exit_btn_image = load_image("assets/exit.png")
+continue_btn_image = load_image("assets/continue.png")
+title_image = load_image("assets/flapetite.png")
+quickie_image = [load_image("assets/quickie.png"),
+                 load_image("assets/quickie1.png"),
+                 load_image("assets/quickie2.png")]
+pause_btn_image = load_image("assets/pause.png")
+how_to_play_image = load_image("assets/how_to_play_panel.png")
+pause_image = load_image("assets/pause_panel.png")
+game_over_image = load_image("assets/game_over_panel.png")
 
 # Load Gameplay Sprites
-portal_image = pygame.image.load("assets/portal.png")
-food_images = [pygame.image.load(f"assets/food{i}.png") for i in range(1, 11)]
+portal_image = load_image("assets/portal.png")
+food_images = [load_image(f"assets/food{i}.png") for i in range(1, 11)]
 
 # Load Audio Files
-background_music = pygame.mixer.Sound("assets/audio/bg_music.mp3")
+background_music = load_sound("assets/audio/bg_music.mp3")
 flap_sounds = [
-    pygame.mixer.Sound("assets/audio/flap.wav"),
-    pygame.mixer.Sound("assets/audio/flap1.wav"),
-    pygame.mixer.Sound("assets/audio/flap2.wav"),
-    pygame.mixer.Sound("assets/audio/flap3.wav")
+    load_sound("assets/audio/flap.wav"),
+    load_sound("assets/audio/flap1.wav"),
+    load_sound("assets/audio/flap2.wav"),
+    load_sound("assets/audio/flap3.wav")
 ]
-score_sound = pygame.mixer.Sound("assets/audio/score.wav")
-food_eat_sound = pygame.mixer.Sound("assets/audio/food_eat_sound.wav")
-portal_sound = pygame.mixer.Sound("assets/audio/warp.wav")
-game_over_sound = pygame.mixer.Sound("assets/audio/game_over.wav")
-button_click = pygame.mixer.Sound("assets/audio/button_click.wav")
-button_hover = pygame.mixer.Sound("assets/audio/hover.wav")
+score_sound = load_sound("assets/audio/score.wav")
+food_eat_sound = load_sound("assets/audio/food_eat_sound.wav")
+portal_sound = load_sound("assets/audio/warp.wav")
+game_over_sound = load_sound("assets/audio/game_over.wav")
+button_click = load_sound("assets/audio/button_click.wav")
+button_hover = load_sound("assets/audio/hover.wav")
 
-# Start background music once at game startup
-background_music.play(loops=-1)  # Loop indefinitely
+# Start background music
+try:
+    background_music.play(loops=-1)  # Loop indefinitely
+except pygame.error as e:
+    print(f"Error playing background music: {e}")
 
 # Game Constants and Initial Values
 scroll_speed = 3
 bird_start_position = (100, 350)
 score = 0
 best_score = 0
-font = pygame.font.Font("assets/more_sugar.ttf", 50)
-big_font = pygame.font.Font("assets/more_sugar.ttf", 90)
-small_font = pygame.font.Font("assets/more_sugar.ttf", 30)
+try:
+    font = pygame.font.Font("assets/more_sugar.ttf", 50)
+    big_font = pygame.font.Font("assets/more_sugar.ttf", 90)
+    small_font = pygame.font.Font("assets/more_sugar.ttf", 30)
+except pygame.error as e:
+    print(f"Error loading font: {e}")
+    exit()
+
 game_stopped = True
 pipe_gap = 200
 command_queue = queue.Queue()
@@ -96,25 +128,29 @@ pause_btn_rect = pause_btn_image.get_rect(topleft=(20, 20))
 # Voice Recognition Thread
 def voice_recognition_thread():
     recognizer = sr.Recognizer()
-    recognizer.dynamic_energy_threshold = True  # Enable dynamic thresholding for faster speech detection
-    recognizer.energy_threshold = 4000  # Adjust for microphone sensitivity
-    with sr.Microphone() as source:
-        recognizer.adjust_for_ambient_noise(source, duration=0.2)
-        while True:
-            try:
-                audio = recognizer.listen(source, timeout=0.1)
-                command = recognizer.recognize_google(audio).lower()
-                command_queue.put(command)
-            except sr.WaitTimeoutError:
-                continue
-            except sr.UnknownValueError:
-                continue
-            except sr.RequestError:
-                continue
-            except Exception:
-                continue
+    recognizer.dynamic_energy_threshold = True
+    recognizer.energy_threshold = 4000
+    try:
+        with sr.Microphone() as source:
+            recognizer.adjust_for_ambient_noise(source, duration=0.2)
+            while True:
+                try:
+                    audio = recognizer.listen(source, timeout=1, phrase_time_limit=2)
+                    command = recognizer.recognize_google(audio).lower()
+                    command_queue.put(command)
+                except sr.WaitTimeoutError:
+                    continue
+                except sr.UnknownValueError:
+                    continue
+                except sr.RequestError:
+                    continue
+                except Exception as e:
+                    print(f"Voice recognition error: {e}")
+                    continue
+    except Exception as e:
+        print(f"Microphone initialization error: {e}")
 
-# Start voice recognition in a separate thread
+# Start overlays recognition in a separate thread
 threading.Thread(target=voice_recognition_thread, daemon=True).start()
 
 # Pause Game Menu
@@ -129,7 +165,7 @@ def pause_game():
                 pygame.quit()
                 exit()
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                button_click.play()  # Play button click sound on ESC
+                button_click.play()
                 paused = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
@@ -137,23 +173,22 @@ def pause_game():
                     continue_rect = continue_btn_image.get_rect(center=(win_width // 2 + 100, 510))
                     exit_rect = exit_btn_image.get_rect(center=(win_width // 2 - 100, 510))
                     if continue_rect.collidepoint(mouse):
-                        button_click.play()  # Play button click sound
+                        button_click.play()
                         paused = False
                     elif exit_rect.collidepoint(mouse):
-                        button_click.play()  # Play button click sound
+                        button_click.play()
                         score = 0
                         paused = False
                         game_stopped = True
                         menu()
 
-        # Process voice commands
         try:
             command = command_queue.get_nowait()
             if command == "continue":
-                button_click.play()  # Play button click sound
+                button_click.play()
                 paused = False
             elif command == "exit":
-                button_click.play()  # Play button click sound
+                button_click.play()
                 score = 0
                 paused = False
                 game_stopped = True
@@ -161,17 +196,16 @@ def pause_game():
         except queue.Empty:
             pass
 
-        # Check for mouse hover on buttons
         mouse_pos = pygame.mouse.get_pos()
         continue_btn = continue_btn_image
         exit_btn = exit_btn_image
-        button_scale = 1.1  # 10% larger when hovered
+        button_scale = 1.1
         continue_rect = continue_btn_image.get_rect(center=(win_width // 2 + 100, 510))
         exit_rect = exit_btn_image.get_rect(center=(win_width // 2 - 100, 510))
 
         if continue_rect.collidepoint(mouse_pos):
             if not continue_hover_played:
-                button_hover.play()  # Play hover sound
+                button_hover.play()
                 continue_hover_played = True
             continue_btn = pygame.transform.scale(continue_btn_image,
                                                  (int(continue_btn_image.get_width() * button_scale),
@@ -182,7 +216,7 @@ def pause_game():
 
         if exit_rect.collidepoint(mouse_pos):
             if not exit_hover_played:
-                button_hover.play()  # Play hover sound
+                button_hover.play()
                 exit_hover_played = True
             exit_btn = pygame.transform.scale(exit_btn_image,
                                               (int(exit_btn_image.get_width() * button_scale),
@@ -191,7 +225,6 @@ def pause_game():
         else:
             exit_hover_played = False
 
-        # Draw pause panel and buttons
         window.blit(pause_image, (win_width // 2 - pause_image.get_width() // 2, win_height // 2 - pause_image.get_height() // 2))
         window.blit(continue_btn, continue_rect.topleft)
         window.blit(exit_btn, exit_rect.topleft)
@@ -216,7 +249,6 @@ class Bird(pygame.sprite.Sprite):
 
     def update(self, user_input, game_started):
         if self.alive:
-            # Handle animation
             flap_cooldown = 5
             self.counter += 1
             if self.counter > flap_cooldown:
@@ -224,7 +256,6 @@ class Bird(pygame.sprite.Sprite):
                 self.index = (self.index + 1) % len(self.images)
                 self.image = self.images[self.index]
 
-            # Apply gravity only if game has started
             if game_started:
                 self.vel += 0.5
                 if self.vel > 8:
@@ -232,7 +263,6 @@ class Bird(pygame.sprite.Sprite):
                 if self.rect.bottom < win_height:
                     self.rect.y += int(self.vel)
 
-            # Flap on SPACE key, mouse click, or voice "jump" (single tap)
             try:
                 command = command_queue.get_nowait()
                 if command == "jump":
@@ -246,7 +276,7 @@ class Bird(pygame.sprite.Sprite):
                 self.clicked = pygame.mouse.get_pressed()[0] == 1 or self.voice_jump
                 self.space_pressed = user_input[pygame.K_SPACE]
                 self.vel = -10
-                random.choice(flap_sounds).play()  # Play random flap sound
+                random.choice(flap_sounds).play()
             if not user_input[pygame.K_SPACE]:
                 self.space_pressed = False
             if pygame.mouse.get_pressed()[0] == 0:
@@ -254,10 +284,8 @@ class Bird(pygame.sprite.Sprite):
             if self.voice_jump:
                 self.voice_jump = False
 
-            # Rotate bird based on velocity
             self.image = pygame.transform.rotate(self.images[self.index], self.vel * -2)
         else:
-            # When dead, point downward
             self.vel += 0.5
             if self.vel > 8:
                 self.vel = 8
@@ -283,7 +311,6 @@ class Pipe(pygame.sprite.Sprite):
         if self.rect.right < 0:
             self.kill()
 
-        # Scoring logic
         global score
         if self.pipe_type == 'bottom':
             if bird_start_position[0] > self.rect.left and not self.passed:
@@ -293,7 +320,7 @@ class Pipe(pygame.sprite.Sprite):
             if self.enter and self.exit and not self.passed:
                 self.passed = True
                 score += 1
-                score_sound.play()  # Play score sound for passing pipes
+                score_sound.play()
 
 # Food Class
 class Food(pygame.sprite.Sprite):
@@ -329,7 +356,7 @@ def how_to_play_screen():
                 pygame.quit()
                 exit()
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                button_click.play()  # Play button click sound on ESC
+                button_click.play()
                 menu()
                 return
             elif event.type == pygame.MOUSEBUTTONDOWN:
@@ -338,8 +365,7 @@ def how_to_play_screen():
                     play_rect = play_btn_image.get_rect(center=(win_width // 2 + 100, 610))
                     exit_rect = exit_btn_image.get_rect(center=(win_width // 2 - 100, 610))
                     if play_rect.collidepoint(mouse):
-                        button_click.play()  # Play button click sound
-                        # Wait for mouse release before starting game
+                        button_click.play()
                         while pygame.mouse.get_pressed()[0]:
                             for e in pygame.event.get():
                                 if e.type == pygame.QUIT:
@@ -350,35 +376,33 @@ def how_to_play_screen():
                         main()
                         return
                     elif exit_rect.collidepoint(mouse):
-                        button_click.play()  # Play button click sound
+                        button_click.play()
                         menu()
                         return
 
-        # Process voice commands
         try:
             command = command_queue.get_nowait()
             if command == "play":
-                button_click.play()  # Play button click sound
+                button_click.play()
                 main()
                 return
             elif command == "exit":
-                button_click.play()  # Play button click sound
+                button_click.play()
                 menu()
                 return
         except queue.Empty:
             pass
 
-        # Check for mouse hover on buttons
         mouse_pos = pygame.mouse.get_pos()
         play_btn = play_btn_image
         exit_btn = exit_btn_image
-        button_scale = 1.1  # 10% larger when hovered
+        button_scale = 1.1
         play_rect = play_btn_image.get_rect(center=(win_width // 2 + 100, 610))
         exit_rect = exit_btn_image.get_rect(center=(win_width // 2 - 100, 610))
 
         if play_rect.collidepoint(mouse_pos):
             if not play_hover_played:
-                button_hover.play()  # Play hover sound
+                button_hover.play()
                 play_hover_played = True
             play_btn = pygame.transform.scale(play_btn_image,
                                               (int(play_btn_image.get_width() * button_scale),
@@ -389,7 +413,7 @@ def how_to_play_screen():
 
         if exit_rect.collidepoint(mouse_pos):
             if not exit_hover_played:
-                button_hover.play()  # Play hover sound
+                button_hover.play()
                 exit_hover_played = True
             exit_btn = pygame.transform.scale(exit_btn_image,
                                               (int(exit_btn_image.get_width() * button_scale),
@@ -398,7 +422,6 @@ def how_to_play_screen():
         else:
             exit_hover_played = False
 
-        # Draw elements
         window.blit(normal_background, (0, 0))
         howto_rect = how_to_play_btn_image2.get_rect(center=(win_width // 2, 100))
         window.blit(how_to_play_image, (win_width // 2 - how_to_play_image.get_width() // 2, win_height // 2 - 250))
@@ -418,14 +441,19 @@ def main():
     portal = pygame.sprite.Group()
 
     pipe_timer = 0
+    pipe_counter = 0
     mood_state = 0
     current_background = normal_background
     portal_active = False
-    portal_spawn_score = None
-    game_started = False  # Wait for user input to start game
-    game_over_played = False  # Flag to ensure game over sound plays once
+    last_portal_pipe = -1
+    game_started = False
+    game_over_played = False
+    flash_alpha = 0
+    flash_duration = 30  # ~0.5 seconds at 60 FPS
+    flash_timer = 0
+    flash_surface = pygame.Surface((win_width, win_height))
+    flash_surface.fill((255, 255, 255))
 
-    # Clear command queue and reset input states
     while not command_queue.empty():
         command_queue.get()
     bird.sprite.clicked = False
@@ -439,30 +467,27 @@ def main():
                 pygame.quit()
                 exit()
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE and game_started:
-                button_click.play()  # Play button click sound on ESC
+                button_click.play()
                 pause_game()
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1 and pause_btn_rect.collidepoint(event.pos) and game_started:
-                    button_click.play()  # Play button click sound
+                    button_click.play()
                     pause_game()
 
-        # Process voice commands
         try:
             command = command_queue.get_nowait()
             if command == "pause" and game_started:
-                button_click.play()  # Play button click sound
+                button_click.play()
                 pause_game()
             elif command == "jump":
-                game_started = True  # Start game on "jump" voice command
+                game_started = True
         except queue.Empty:
             pass
 
-        # Check for start inputs (spacebar, click, or voice "jump")
         if not game_started:
             if user_input[pygame.K_SPACE] or (pygame.mouse.get_pressed()[0] == 1 and not bird.sprite.clicked):
                 game_started = True
 
-        # Draw elements
         window.blit(current_background, (0, 0))
         if game_started:
             window.blit(pause_btn_image, pause_btn_rect.topleft)
@@ -471,50 +496,44 @@ def main():
         portal.draw(window)
         bird.draw(window)
 
-        # Display score
         score_text = font.render(f'Score: {score}', True, pygame.Color(23, 35, 58))
         window.blit(score_text, (190, 50))
 
-        # Display start prompt if game hasn't started
         if not game_started:
-            # Split text into two lines
             line1 = small_font.render("Press SPACE, Click,", True, pygame.Color(23, 35, 58))
             line2 = small_font.render("or Say 'Jump' to Start", True, pygame.Color(23, 35, 58))
             line3 = font.render("GET READY...", True, pygame.Color(23, 35, 58))
-
-            # Centered x positions
             x = (win_width - line1.get_width()) // 2
             x3 = (win_width - line3.get_width()) // 2
-
-            # Y position
             y = 500
-
-            # Draw each line
             window.blit(line1, (x, y))
             window.blit(line2, (x, y + line1.get_height() + 5))
             window.blit(line3, (x3, 150))
 
-        # Update sprites
         if game_started and bird.sprite.alive:
             pipes.update()
             foods.update()
             portal.update()
         bird.update(user_input, game_started)
 
-        # Check collisions
+        if flash_timer > 0:
+            flash_surface.set_alpha(flash_alpha)
+            window.blit(flash_surface, (0, 0))
+            flash_alpha = int(255 * (flash_timer / flash_duration))
+            flash_timer -= 1
+
         if game_started:
             if bird.sprite.rect.top <= 0 or bird.sprite.rect.bottom >= win_height:
                 if bird.sprite.alive:
                     bird.sprite.alive = False
-                    game_over_sound.play()  # Play game over sound
+                    game_over_sound.play()
                     game_over_played = True
             if pygame.sprite.spritecollide(bird.sprite, pipes, False):
                 if bird.sprite.alive:
                     bird.sprite.alive = False
-                    game_over_sound.play()  # Play game over sound
+                    game_over_sound.play()
                     game_over_played = True
 
-        # Handle game over
         if not bird.sprite.alive and game_started:
             if score > best_score:
                 best_score = score
@@ -531,27 +550,26 @@ def main():
                             play_rect = play_btn_image.get_rect(center=(win_width // 2 + 100, 510))
                             exit_rect = exit_btn_image.get_rect(center=(win_width // 2 - 100, 510))
                             if play_rect.collidepoint(mouse):
-                                button_click.play()  # Play button click sound
+                                button_click.play()
                                 score = 0
                                 main()
                                 return
                             elif exit_rect.collidepoint(mouse):
-                                button_click.play()  # Play button click sound
+                                button_click.play()
                                 score = 0
                                 game_stopped = True
                                 menu()
                                 return
 
-                # Process voice commands
                 try:
                     command = command_queue.get_nowait()
                     if command == "play":
-                        button_click.play()  # Play button click sound
+                        button_click.play()
                         score = 0
                         main()
                         return
                     elif command == "exit":
-                        button_click.play()  # Play button click sound
+                        button_click.play()
                         score = 0
                         game_stopped = True
                         menu()
@@ -559,17 +577,16 @@ def main():
                 except queue.Empty:
                     pass
 
-                # Check for mouse hover on buttons
                 mouse_pos = pygame.mouse.get_pos()
                 play_btn = play_btn_image
                 exit_btn = exit_btn_image
-                button_scale = 1.1  # 10% larger when hovered
+                button_scale = 1.1
                 play_rect = play_btn_image.get_rect(center=(win_width // 2 + 100, 510))
                 exit_rect = exit_btn_image.get_rect(center=(win_width // 2 - 100, 510))
 
                 if play_rect.collidepoint(mouse_pos):
                     if not play_hover_played:
-                        button_hover.play()  # Play hover sound
+                        button_hover.play()
                         play_hover_played = True
                     play_btn = pygame.transform.scale(play_btn_image,
                                                      (int(play_btn_image.get_width() * button_scale),
@@ -580,7 +597,7 @@ def main():
 
                 if exit_rect.collidepoint(mouse_pos):
                     if not exit_hover_played:
-                        button_hover.play()  # Play hover sound
+                        button_hover.play()
                         exit_hover_played = True
                     exit_btn = pygame.transform.scale(exit_btn_image,
                                                      (int(exit_btn_image.get_width() * button_scale),
@@ -589,19 +606,16 @@ def main():
                 else:
                     exit_hover_played = False
 
-                # Draw game over elements
                 window.blit(current_background, (0, 0))
                 pipes.draw(window)
                 foods.draw(window)
                 portal.draw(window)
                 bird.draw(window)
 
-                # Show game over panel
                 window.blit(game_over_image, (win_width // 2 - game_over_image.get_width() // 2, win_height // 2 - 250))
                 window.blit(play_btn, play_rect.topleft)
                 window.blit(exit_btn, exit_rect.topleft)
 
-                # Draw scores
                 curr_text = big_font.render(f"{score}", True, (23, 35, 58))
                 best_text = big_font.render(f"{best_score}", True, (23, 35, 58))
                 spacing = 140
@@ -614,7 +628,6 @@ def main():
                 pygame.display.update()
                 clock.tick(60)
 
-        # Spawn pipes, food, and portal only if game has started
         if game_started and pipe_timer <= 0 and bird.sprite.alive:
             x_pipe = win_width
             top_pipe_height = random.randint(50, win_height - pipe_gap - 150)
@@ -627,33 +640,34 @@ def main():
 
             pipes.add(Pipe(x_pipe, top_pipe_height, top_img, 'top'))
             pipes.add(Pipe(x_pipe, bottom_pipe_y, bot_img, 'bottom'))
+            pipe_counter += 1
 
             if random.random() < 0.5:
                 foods.add(Food(x_pipe + 60, top_pipe_height + pipe_gap // 2))
 
-            if score > 0 and score % 10 == 0 and not portal_active and portal_spawn_score != score:
+            if pipe_counter >= 8 and pipe_counter % 8 == 0 and not portal_active and last_portal_pipe != pipe_counter:
                 portal.add(Portal(x_pipe + 80, top_pipe_height + pipe_gap // 2))
                 portal_active = True
-                portal_spawn_score = score
+                last_portal_pipe = pipe_counter
 
             pipe_timer = random.randint(150, 220)
 
         if game_started:
             pipe_timer -= 1
 
-        # Check for food collection
         if game_started and pygame.sprite.spritecollide(bird.sprite, foods, True):
             score += 1
-            food_eat_sound.play()  # Play food eat sound
+            food_eat_sound.play()
 
-        # Check for portal entry
         if game_started and pygame.sprite.spritecollide(bird.sprite, portal, True):
             available_moods = [i for i in range(4) if i != mood_state]
             mood_state = random.choice(available_moods)
             current_background = [normal_background, happy_background, sad_background, angry_background][mood_state]
             portal_active = False
-            portal_spawn_score = None
-            portal_sound.play()  # Play portal sound
+            last_portal_pipe = -1
+            portal_sound.play()
+            flash_alpha = 255
+            flash_timer = flash_duration
 
         pygame.display.update()
         clock.tick(60)
@@ -667,25 +681,21 @@ def menu():
     exit_rect = exit_btn_image.get_rect(center=(win_width // 2, 580))
     title_rect = title_image.get_rect(center=(win_width // 2, 110))
 
-    # Animation variables for title
     animation_time = 0
     base_title_scale = 1.0
-    title_scale_amplitude = 0.05  # 5% scale variation
-    title_animation_speed = 0.05   # Speed of pulsing animation
+    title_scale_amplitude = 0.05
+    title_animation_speed = 0.05
 
-    # Animation variables for quickie
     quickie_index = 0
     quickie_counter = 0
-    flap_cooldown = 10  # Slower animation (~6 FPS at 60 FPS)
-    quickie_hover_played = False  # Flag for hover sound
-    button_scale = 1.1  # 10% larger when hovered
+    flap_cooldown = 10
+    quickie_hover_played = False
+    button_scale = 1.1
 
-    # Hover sound flags for buttons
     start_hover_played = False
     howto_hover_played = False
     exit_hover_played = False
 
-    # Clear command queue to avoid stale commands
     while not command_queue.empty():
         command_queue.get()
 
@@ -698,8 +708,7 @@ def menu():
                 if event.button == 1:
                     mouse = event.pos
                     if start_rect.collidepoint(mouse):
-                        button_click.play()  # Play button click sound
-                        # Wait for mouse release before starting game
+                        button_click.play()
                         while pygame.mouse.get_pressed()[0]:
                             for e in pygame.event.get():
                                 if e.type == pygame.QUIT:
@@ -710,8 +719,7 @@ def menu():
                         game_stopped = False
                         main()
                     elif howto_rect.collidepoint(mouse):
-                        button_click.play()  # Play button click sound
-                        # Wait for mouse release before going to how to play
+                        button_click.play()
                         while pygame.mouse.get_pressed()[0]:
                             for e in pygame.event.get():
                                 if e.type == pygame.QUIT:
@@ -721,72 +729,63 @@ def menu():
                             clock.tick(60)
                         how_to_play_screen()
                     elif exit_rect.collidepoint(mouse):
-                        button_click.play()  # Play button click sound
+                        button_click.play()
                         pygame.quit()
                         exit()
 
-        # Process voice commands
         try:
             command = command_queue.get_nowait()
             if command == "start":
-                button_click.play()  # Play button click sound
+                button_click.play()
                 game_stopped = False
                 main()
             elif command == "how to play":
-                button_click.play()  # Play button click sound
+                button_click.play()
                 how_to_play_screen()
             elif command == "exit":
-                button_click.play()  # Play button click sound
+                button_click.play()
                 pygame.quit()
                 exit()
         except queue.Empty:
             pass
 
-        # Update animation time for title
         animation_time += title_animation_speed
-
-        # Calculate title scale for pulsing effect
         title_scale = base_title_scale + title_scale_amplitude * math.sin(animation_time)
         scaled_title = pygame.transform.scale(title_image,
                                              (int(title_image.get_width() * title_scale),
                                               int(title_image.get_height() * title_scale)))
         scaled_title_rect = scaled_title.get_rect(center=(win_width // 2, 110))
 
-        # Check for mouse hover on quickie
         mouse_pos = pygame.mouse.get_pos()
         quickie_rect = quickie_image[quickie_index].get_rect(topleft=(win_width // 2 - 85, 190))
         quickie_btn = quickie_image[quickie_index]
         if quickie_rect.collidepoint(mouse_pos):
             if not quickie_hover_played:
-                random.choice(flap_sounds).play()  # Play random flap sound once on hover
+                random.choice(flap_sounds).play()
                 quickie_hover_played = True
-            # Animate quickie
             quickie_counter += 1
             if quickie_counter > flap_cooldown:
                 quickie_counter = 0
                 quickie_index = (quickie_index + 1) % len(quickie_image)
-            # Scale quickie when hovered
             quickie_btn = pygame.transform.scale(quickie_image[quickie_index],
                                                 (int(quickie_image[quickie_index].get_width() * button_scale),
                                                  int(quickie_image[quickie_index].get_height() * button_scale)))
             quickie_rect = quickie_btn.get_rect(center=(win_width // 2 - 85 + quickie_image[quickie_index].get_width() // 2,
                                                        190 + quickie_image[quickie_index].get_height() // 2))
         else:
-            # Reset to static image and hover sound flag
             quickie_index = 0
             quickie_counter = 0
             quickie_hover_played = False
             quickie_btn = quickie_image[quickie_index]
             quickie_rect = quickie_btn.get_rect(topleft=(win_width // 2 - 85, 190))
 
-        # Check for mouse hover on buttons
         start_btn = start_btn_image
         howto_btn = how_to_play_btn_image1
         exit_btn = exit_btn_image
 
         if start_rect.collidepoint(mouse_pos):
             if not start_hover_played:
-                button_hover.play()  # Play hover sound
+                button_hover.play()
                 start_hover_played = True
             start_btn = pygame.transform.scale(start_btn_image,
                                                (int(start_btn_image.get_width() * button_scale),
@@ -797,7 +796,7 @@ def menu():
 
         if howto_rect.collidepoint(mouse_pos):
             if not howto_hover_played:
-                button_hover.play()  # Play hover sound
+                button_hover.play()
                 howto_hover_played = True
             howto_btn = pygame.transform.scale(how_to_play_btn_image1,
                                                (int(how_to_play_btn_image1.get_width() * button_scale),
@@ -808,7 +807,7 @@ def menu():
 
         if exit_rect.collidepoint(mouse_pos):
             if not exit_hover_played:
-                button_hover.play()  # Play hover sound
+                button_hover.play()
                 exit_hover_played = True
             exit_btn = pygame.transform.scale(exit_btn_image,
                                               (int(exit_btn_image.get_width() * button_scale),
@@ -817,7 +816,6 @@ def menu():
         else:
             exit_hover_played = False
 
-        # Draw elements
         window.blit(normal_background, (0, 0))
         window.blit(scaled_title, scaled_title_rect.topleft)
         window.blit(quickie_btn, quickie_rect.topleft)
